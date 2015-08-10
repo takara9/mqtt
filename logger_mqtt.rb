@@ -53,6 +53,12 @@ def mqtt_loop()
       val2 = f[7].to_i
     when "power" then
       val = f[3].to_i
+      # 電気資料量が 300Whrを超えると警告
+      if val > 200 then
+        $client.publish("alart","red",retain=true)
+      else
+        $client.publish("alart","green",retain=true)
+      end
     when "pressure" then
       val = f[3].to_i
     else
