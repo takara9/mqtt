@@ -34,7 +34,7 @@ end
 
 def mqtt_loop()
   $client.get('sensor/#') do |topic,message|
-    puts "#{topic},#{message}"
+    #puts "#{topic},#{message}"
     msg = JSON.parse(message)
     (topic_domin, topic_name) = topic.split("/")
     
