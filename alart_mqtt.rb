@@ -8,9 +8,6 @@
 # 効果
 #   LEDの明かりで人間に知らせる
 #
-# 実行例
-# ./alart_mqtt_mqtt.rb mqtt://192.155.208.116:1883
-#
 # 日付 2015/8/10 
 # 開発者 高良 真穂
 #
@@ -18,10 +15,7 @@
 
 require 'rubygems'
 require 'mqtt'
-
-def mqtt_init(broker_url)
-  $client = MQTT::Client.connect(broker_url)
-end
+require 'json'
 
 def mqtt_loop()
   $client.get('alart') do |topic,message|
@@ -34,10 +28,6 @@ def mqtt_loop()
       led_off(25)
     end
   end
-end
-
-def matt_close()
-  $client.disconnect()
 end
 
 def led_init(pin)
@@ -71,7 +61,12 @@ end
 if __FILE__ == $0
   led_init(25)
   led_init(24)
-  mqtt_init(ARGV[0])
+
+  json_data = open("config.json") do |io|
+    JSON.load(io)
+  end
+
+  $client = MQTT::Client.connect(json_data['mqtt_broker'])
   mqtt_loop()
-  mqtt_close()
+  $client.disconnect()
 end

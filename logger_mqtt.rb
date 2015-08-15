@@ -10,18 +10,17 @@
 #   MQTTで配信されるトピックスについて
 #   この最終値、過去の履歴を記録する
 #
-# 実行例
-# ./logger_mqtt.rb mqtt://192.155.208.116:1883
 #
 # 日付 2015/8/10 
-# 開発者 高良 真穂
+# 作者 高良 真穂
 #
 #
 
 require 'rubygems'
 require 'mqtt'
+require 'json'
 
-def logw(fn,rec)
+def log_writer(fn,rec)
   basedir = "/var/log"
   fnf = "#{basedir}/#{fn}.log"
   if fn == "temp" then
@@ -33,52 +32,49 @@ def logw(fn,rec)
   end
 end
 
-def mqtt_init(broker_url)
-  $client = MQTT::Client.connect(broker_url)
-end
-
 def mqtt_loop()
   $client.get('sensor/#') do |topic,message|
-    #puts "#{topic},#{message}"
-    fn = topic.split("/")
-    logw(fn[1],message)
-    tn = fn[1]
-    f = message.split(",")
-    val = 0
-    case tn
+    puts "#{topic},#{message}"
+    msg = JSON.parse(message)
+    (topic_domin, topic_name) = topic.split("/")
+    
+    # 最終取得値をトピックスに書込み
+    case topic_name
+
     when "temp" then
-      tn = "#{fn[1]}_#{f[3]}"    
-      val = f[6].to_i
-      tn2 = "humd_#{f[3]}"    
-      val2 = f[7].to_i
+      # 最終の温度と湿度をトピックに書込み
+      $client.publish("temp_#{msg['pos']}",msg['tmp'],retain=true)
+      $client.publish("humi_#{msg['pos']}",msg['hmd'],retain=true)
+      rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['pos']},#{msg['tmp']},#{msg['hmd']},#{msg['erc']}"
+      log_writer("temp_#{msg['pos']}",rec)
+
     when "power" then
-      val = f[3].to_i
-      # 電気資料量が 300Whrを超えると警告
-      if val > 200 then
+      # 消費電力が大きい場合は警告
+      if msg['power'] > 200 then
         $client.publish("alart","red",retain=true)
       else
         $client.publish("alart","green",retain=true)
       end
+      rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['power']}"
+      log_writer("#{topic_name}",rec)
+
     when "pressure" then
-      val = f[3].to_i
-    else
-      val = 0
-    end
-    $client.publish(tn,val,retain=true)
-    if fn[1] == "temp" then
-      $client.publish(tn2,val2,retain=true)
+      $client.publish("pressure",msg['pressure'],retain=true)
+      rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['pressure']}"
+      log_writer("#{topic_name}",rec)
+
     end
   end
 end
 
-def matt_close()
-  $client.disconnect()
-end
-
-
 ##### MAIN #####
 if __FILE__ == $0
-  mqtt_init(ARGV[0])
+
+  json_data = open("config.json") do |io|
+    JSON.load(io)
+  end
+
+  $client = MQTT::Client.connect(json_data['mqtt_broker'])
   mqtt_loop()
-  mqtt_close()
+  $client.disconnect()
 end
