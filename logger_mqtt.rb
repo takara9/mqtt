@@ -55,6 +55,7 @@ def mqtt_loop()
       else
         $client.publish("alart","green",retain=true)
       end
+      $client.publish("power",msg['power'],retain=true)
       rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['power']}"
       log_writer("#{topic_name}",rec)
 
