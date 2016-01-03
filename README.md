@@ -14,7 +14,7 @@ MQTTブローカーに接続して、以下の処理をおこなう。
     * temp_desktop,humi_desktop,temp_floor,humi_floor,temp_window,humi_window
     * power,alert,pressure
 
-## alart_mqtt.rb
+## alert_mqtt.rb
 
 MQTTブローカーからアラーム用トピックスを読んで、LEDを点灯する
 
