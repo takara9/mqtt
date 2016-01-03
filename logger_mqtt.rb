@@ -12,8 +12,9 @@
 #
 #
 # 日付 2015/8/10 
-# 作者 高良 真穂
+# 更新 2016/1/4
 #
+# 作者 高良 真穂
 #
 
 require 'rubygems'
@@ -46,23 +47,23 @@ def mqtt_loop()
       $client.publish("temp_#{msg['pos']}",msg['tmp'],retain=true)
       $client.publish("humi_#{msg['pos']}",msg['hmd'],retain=true)
       rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['pos']},#{msg['tmp']},#{msg['hmd']},#{msg['erc']}"
-      log_writer("temp_#{msg['pos']}",rec)
+      #log_writer("temp_#{msg['pos']}",rec)
 
     when "power" then
       # 消費電力が大きい場合は警告
       if msg['power'] > 200 then
-        $client.publish("alart","red",retain=true)
+        $client.publish("alert","red",retain=true)
       else
-        $client.publish("alart","green",retain=true)
+        $client.publish("alert","green",retain=true)
       end
       $client.publish("power",msg['power'],retain=true)
       rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['power']}"
-      log_writer("#{topic_name}",rec)
+      #log_writer("#{topic_name}",rec)
 
     when "pressure" then
       $client.publish("pressure",msg['pressure'],retain=true)
       rec = "#{msg['uxtm']},#{msg['sttm']},#{msg['pressure']}"
-      log_writer("#{topic_name}",rec)
+      #log_writer("#{topic_name}",rec)
 
     end
   end
