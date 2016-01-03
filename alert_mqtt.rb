@@ -18,7 +18,7 @@ require 'mqtt'
 require 'json'
 
 def mqtt_loop()
-  $client.get('alart') do |topic,message|
+  $client.get('alert') do |topic,message|
     puts "#{topic},#{message}"
     if message == "red" then
       led_on(25)
